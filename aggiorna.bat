@@ -16,7 +16,7 @@ git commit -m "Aggiornamento automatico UI e Funzioni"
 
 :: 3. Spedisce a GitHub (che avvisa Render)
 echo [3/3] Spedisco al server online...
-git push origin main
+git push origin main --force
 
 echo.
 echo ---------------------------------------------------
