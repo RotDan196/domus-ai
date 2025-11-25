@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Business Suite | SaaS</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --primary: #3b82f6;
+            /* Blu per Real Estate */
+            --ecommerce: #10b981;
+            /* Verde per E-commerce */
+            --accent: #8b5cf6;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sfondo dinamico */
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.2;
+            z-index: -1;
+            transition: background 1s ease;
+        }
+
+        .orb-1 {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: var(--primary);
+        }
+
+        .orb-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 40vw;
+            height: 40vw;
+            background: var(--accent);
+        }
+
+        /* Layout */
+        .app-layout {
+            display: flex;
+            height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 400px;
+            padding: 30px;
+            background: rgba(10, 10, 15, 0.6);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .brand {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 30px;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* App Switcher Pills */
+        .mode-switcher {
+            display: flex;
+            background: var(--glass);
+            padding: 5px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+
+        .mode-btn.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .mode-btn:hover {
+            color: white;
+        }
+
+        /* Form */
+        label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            font-family: inherit;
+            transition: 0.2s;
+            font-size: 0.95rem;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Button Dinamico */
+        .cta-button {
+            width: 100%;
+            margin-top: 30px;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1rem;
+        }
+
+        /* Main View */
+        .main-view {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .result-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 50px;
+            min-height: 200px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .markdown-body {
+            line-height: 1.8;
+            color: #e2e8f0;
+        }
+
+        .markdown-body h1 {
+            color: white;
+            font-size: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 20px;
+        }
+
+        .markdown-body strong {
+            color: var(--primary);
+        }
+
+        /* Checkbox Switch */
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--glass);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            margin-top: 25px;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        .toggle-indicator {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--text-muted);
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        input:checked+.toggle-indicator {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Loader */
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 150px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-layout {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            body {
+                overflow: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-orb orb-1" id="bgOrb"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <div class="app-layout">
+        <div class="sidebar">
+            <div class="brand">
+                <span>⚡</span> AI Business Suite
+            </div>
+
+            <!-- APP SWITCHER -->
+            <div class="mode-switcher">
+                <div class="mode-btn active" onclick="setMode('real_estate')" id="btn-re">🏠 Real Estate</div>
+                <div class="mode-btn" onclick="setMode('ecommerce')" id="btn-ecom">🛍️ E-commerce</div>
+            </div>
+
+            <form id="generatorForm">
+                <input type="hidden" name="mode" id="input-mode" value="real_estate">
+
+                <label id="lbl-name">Tipologia Immobile</label>
+                <input type="text" name="product_name" id="input-name" placeholder="es. Attico, Villa..." required>
+
+                <label id="lbl-features">Dettagli Chiave</label>
+                <textarea name="features" id="input-features" rows="5" placeholder="es. 120mq, 2 bagni..."
+                    required></textarea>
+
+                <label id="lbl-target">Zona / Target</label>
+                <input type="text" name="target" id="input-target" placeholder="es. Milano Centro" required>
+
+                <label>Strategia / Tono</label>
+                <select name="tone">
+                    <option value="Persuasivo e Emozionale">Persuasivo e Emozionale</option>
+                    <option value="Lusso ed Esclusivo">Lusso ed Esclusivo</option>
+                    <option value="Tecnico e Dettagliato">Tecnico e Dettagliato</option>
+                    <option value="Urgente (Scarsità)">Urgente (FOMO)</option>
+                </select>
+
+                <label class="toggle-switch">
+                    <span class="toggle-label" id="lbl-extra">📸 Genera Post Social</span>
+                    <input type="checkbox" name="extra_opt" value="true">
+                    <div class="toggle-indicator" id="indicator"></div>
+                </label>
+
+                <button type="submit" class="cta-button" id="submit-btn" style="background: var(--primary);">Genera
+                    Contenuti</button>
+            </form>
+        </div>
+
+        <div class="main-view">
+            <div id="loader" class="loader">
+                <div class="spinner" id="spinner"></div>
+                <p>L'AI sta analizzando i dati...</p>
+            </div>
+
+            <div id="placeholder"
+                style="text-align: center; color: var(--text-muted); margin-top: 150px; opacity: 0.5;">
+                <h2>Seleziona un'App a sinistra<br>e inizia a creare.</h2>
+            </div>
+
+            <div id="resultArea" style="display: none;">
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                    <button onclick="copyText()"
+                        style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer;">📋
+                        Copia Risultato</button>
+                </div>
+                <div class="result-card">
+                    <div id="resultContent" class="markdown-body"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Logica Switch App
+        function setMode(mode) {
+            const btnRe = document.getElementById('btn-re');
+            const btnEcom = document.getElementById('btn-ecom');
+            const inputMode = document.getElementById('input-mode');
+            const bgOrb = document.getElementById('bgOrb');
+            const submitBtn = document.getElementById('submit-btn');
+            const indicator = document.getElementById('indicator');
+            const spinner = document.getElementById('spinner');
+
+            // Reset UI
+            document.getElementById('resultArea').style.display = 'none';
+            document.getElementById('placeholder').style.display = 'block';
+            document.getElementById('generatorForm').reset();
+
+            if (mode === 'real_estate') {
+                // UI Real Estate
+                btnRe.classList.add('active');
+                btnEcom.classList.remove('active');
+                inputMode.value = 'real_estate';
+
+                // Colori
+                document.documentElement.style.setProperty('--primary', '#3b82f6');
+                bgOrb.style.background = '#3b82f6';
+                submitBtn.style.background = '#3b82f6';
+
+                // Etichette
+                document.getElementById('lbl-name').innerText = "Tipologia Immobile";
+                document.getElementById('input-name').placeholder = "es. Villa a Schiera, Attico Panoramico...";
+
+                document.getElementById('lbl-features').innerText = "Dettagli Chiave";
+                document.getElementById('input-features').placeholder = "es. 3 camere, classe A, giardino privato...";
+
+                document.getElementById('lbl-target').innerText = "Zona / Quartiere";
+                document.getElementById('input-target').placeholder = "es. Roma Nord, Quartiere Isola...";
+
+                document.getElementById('lbl-extra').innerText = "📸 Genera Post Social";
+
+            } else {
+                // UI E-commerce
+                btnEcom.classList.add('active');
+                btnRe.classList.remove('active');
+                inputMode.value = 'ecommerce';
+
+                // Colori
+                document.documentElement.style.setProperty('--primary', '#10b981'); // Verde soldi
+                bgOrb.style.background = '#10b981';
+                submitBtn.style.background = '#10b981';
+
+                // Etichette
+                document.getElementById('lbl-name').innerText = "Nome Prodotto";
+                document.getElementById('input-name').placeholder = "es. Correttore Posturale, Borraccia Termica...";
+
+                document.getElementById('lbl-features').innerText = "Materiali e Specifiche";
+                document.getElementById('input-features').placeholder = "es. Acciaio inox, tiene freddo 24h, tappo anti-goccia...";
+
+                document.getElementById('lbl-target').innerText = "Keywords SEO / Target Audience";
+                document.getElementById('input-target').placeholder = "es. borraccia sport, trekking, regalo per lui...";
+
+                document.getElementById('lbl-extra').innerText = "📧 Email Recupero Carrello";
+            }
+        }
+
+        // Gestione Invio
+        const form = document.getElementById('generatorForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            document.getElementById('placeholder').style.display = 'none';
+            document.getElementById('resultArea').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch('/api/generate', { method: 'POST', body: formData });
+
+                // Se non autorizzato (Password sbagliata o scaduta)
+                if (res.status === 401) {
+                    location.reload(); // Ricarica per chiedere di nuovo la password
+                    return;
+                }
+
+                const data = await res.json();
+                document.getElementById('loader').style.display = 'none';
+
+                if (data.status === 'success') {
+                    document.getElementById('resultContent').innerHTML = marked.parse(data.result);
+                    document.getElementById('resultArea').style.display = 'block';
+                } else {
+                    alert('Errore: ' + data.result);
+                }
+            } catch (err) {
+                document.getElementById('loader').style.display = 'none';
+                alert('Errore di connessione.');
+            }
+        });
+
+        function copyText() {
+            navigator.clipboard.writeText(document.getElementById('resultContent').innerText);
+            alert("Copiato!");
+        }
+    </script>
+</body>
+
+</html>
