@@ -19,12 +19,12 @@ app = FastAPI()
 security = HTTPBasic()
 templates = Jinja2Templates(directory="templates")
 
+# Usiamo il modello Flash più recente e stabile
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-# --- SISTEMA DI SICUREZZA (SAAS MODEL) ---
+# --- SICUREZZA ---
 def check_credentials(credentials: HTTPBasicCredentials = Depends(security)):
-    # ⚠️ CAMBIA QUESTE CREDENZIALI PRIMA DI DARE IL SITO AI CLIENTI!
     correct_username = "admin"
     correct_password = "money2025" 
     
@@ -34,13 +34,12 @@ def check_credentials(credentials: HTTPBasicCredentials = Depends(security)):
     if not (is_correct_username and is_correct_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Accesso Negato: Paga l'abbonamento per entrare.",
+            detail="Accesso Negato.",
             headers={"WWW-Authenticate": "Basic"},
         )
     return True
 
 # --- ROTTE ---
-
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request, auth: bool = Depends(check_credentials)):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -48,66 +47,78 @@ async def read_root(request: Request, auth: bool = Depends(check_credentials)):
 @app.post("/api/generate")
 async def generate_desc(
     request: Request,
-    mode: str = Form(...),            # real_estate o ecommerce
+    mode: str = Form(...),            
     product_name: str = Form(...), 
     features: str = Form(...), 
-    target: str = Form(...),          # Zona (Real Estate) o Keywords (Ecom)
+    target: str = Form(...),          
     tone: str = Form(...),
-    extra_opt: bool = Form(False),    # Social (Real Estate) o Email (Ecom)
+    language: str = Form(...),        # NUOVO: Lingua Output
+    extra_opt: bool = Form(False),    
     auth: bool = Depends(check_credentials)
 ):
     
-    # SELEZIONE DEL "CERVELLO" (PROMPT)
-    if mode == "real_estate":
-        # --- MODALITÀ IMMOBILIARE ---
-        extra_instruction = ""
-        if extra_opt:
-            extra_instruction = """
-            AGGIUNTA SOCIAL:
-            Alla fine, crea un post Instagram/Facebook breve e coinvolgente con 10 hashtag mirati per il settore immobiliare.
+    # Istruzioni Social/Extra migliorate
+    social_section = ""
+    if extra_opt:
+        if mode == "real_estate":
+            social_section = f"""
+            ---
+            ### 📱 SOCIAL MEDIA KIT (Instagram/Facebook)
+            **Caption:** Scrivi una caption breve, accattivante e formattata con spaziature.
+            **Hashtag:** Inserisci 15 hashtag strategici per {target}.
             """
-            
+        else:
+            social_section = """
+            ---
+            ### 📧 EMAIL RECUPERO CARRELLO
+            **Oggetto:** Un oggetto che garantisce il 60% di open rate.
+            **Corpo:** Un testo persuasivo che usa la leva della scarsità.
+            """
+
+    # Prompt Dinamici
+    if mode == "real_estate":
         prompt = f"""
-        Agisci come un Copywriter Immobiliare Senior di lusso.
-        DATI:
-        - Immobile: {product_name}
-        - Dettagli: {features}
-        - Zona: {target}
-        - Tono: {tone}
+        Ruolo: Copywriter Immobiliare Senior di fama mondiale.
+        Lingua Output: {language}
         
-        OUTPUT RICHIESTO (Markdown):
-        1. H1: Titolo magnetico (non usare "Vendesi").
-        2. Intro emozionale (storytelling).
-        3. Lista puntata caratteristiche premium.
-        4. Descrizione della zona e servizi.
-        5. CTA (Call to Action) urgente.
-        {extra_instruction}
+        INPUT:
+        - Immobile: {product_name}
+        - Dettagli Tecnici: {features}
+        - Zona/Target: {target}
+        - Tono di voce: {tone}
+        
+        COMPITO:
+        Scrivi un annuncio immobiliare strutturato in Markdown.
+        1. **Headline** (H1): Magnetica, specifica.
+        2. **Storytelling**: Descrivi l'esperienza di vita, non solo i muri.
+        3. **Caratteristiche Premium**: Bullet points.
+        4. **Zona**: Perché viverci è comodo/bello.
+        5. **CTA**: Urgente ma elegante.
+        
+        {social_section}
         """
 
-    else:
-        # --- MODALITÀ E-COMMERCE (Shopify/Amazon) ---
-        extra_instruction = ""
-        if extra_opt:
-            extra_instruction = """
-            BONUS RECUPERO CARRELLO:
-            Alla fine, scrivi una Email Oggetto + Corpo per un cliente che ha abbandonato questo prodotto nel carrello. Usa psicologia della scarsità e offri un piccolo incentivo.
-            """
-
+    else: # E-commerce
         prompt = f"""
-        Agisci come un Esperto SEO e Copywriter per E-commerce (Amazon/Shopify).
-        DATI PRODOTTO:
-        - Nome: {product_name}
-        - Specifiche/Materiali: {features}
-        - Keywords SEO / Target: {target}
+        Ruolo: Esperto SEO e Conversion Copywriter per E-commerce top 1%.
+        Lingua Output: {language}
+        
+        INPUT:
+        - Prodotto: {product_name}
+        - Specifiche: {features}
+        - Keywords/Target: {target}
         - Tono: {tone}
         
-        OUTPUT RICHIESTO (Markdown):
-        1. **Titolo Ottimizzato SEO** (Include le keyword principali, max 150 caratteri).
-        2. **Descrizione Persuasiva** (Usa la tecnica AIDA: Attenzione, Interesse, Desiderio, Azione).
-        3. **5 Bullet Points** "Perché comprarlo" (Focus sui benefici, non solo caratteristiche).
-        4. **Specifiche Tecniche** (Tabella o lista pulita).
-        5. **Sezione FAQ** (Genera 3 domande frequenti e rispondi per abbattere le obiezioni).
-        {extra_instruction}
+        COMPITO:
+        Scrivi una scheda prodotto strutturata in Markdown.
+        1. **Titolo SEO** (H1): Include keywords, max 120 caratteri.
+        2. **Hook**: Le prime 2 righe devono catturare l'attenzione.
+        3. **Descrizione Emozionale**: Usa la tecnica "Benefit over Features".
+        4. **Bullet Points**: 5 motivi per acquistare ORA.
+        5. **Specifiche Tecniche**: Tabella pulita.
+        6. **FAQ**: 3 domande e risposte per abbattere obiezioni.
+        
+        {social_section}
         """
     
     try:
